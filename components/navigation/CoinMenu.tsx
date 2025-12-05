@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { User, Commitment } from '../types';
+import { User, Commitment } from '../../types';
 import { X, Zap, Trophy, History, Brain, Sparkles, Flame, Snowflake } from 'lucide-react';
-import BrutalistButton from './ui/BrutalistButton';
+import BrutalistButton from '../ui/BrutalistButton';
 
 interface Props {
   user: User;
@@ -12,12 +12,16 @@ interface Props {
 const CoinMenu: React.FC<Props> = ({ user, onClose }) => {
   const history = user.coinHistory || [];
 
+    function alert(arg0: string): void {
+        throw new Error('Function not implemented.');
+    }
+
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose}></div>
-      
+
       <div className="relative glass-panel w-full max-w-md max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-5 overflow-hidden z-10 rounded-[40px] bg-white/90">
-        
+
         <div className="p-6 flex justify-between items-center">
             <div>
                 <h2 className="text-2xl font-bold text-gray-900">Points</h2>
@@ -41,7 +45,7 @@ const CoinMenu: React.FC<Props> = ({ user, onClose }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">
-            
+
             {/* AI Advisor */}
             <div className="bg-white/50 border border-white/50 p-4 rounded-[24px]">
                  <div className="flex items-center gap-2 mb-2">
@@ -103,9 +107,9 @@ const CoinMenu: React.FC<Props> = ({ user, onClose }) => {
         </div>
 
         <div className="p-6 bg-white/50 border-t border-white/50">
-             <BrutalistButton 
-                label="Get More Points" 
-                variant="primary" 
+             <BrutalistButton
+                label="Get More Points"
+                variant="primary"
                 className="w-full shadow-lg shadow-acid-green/30"
                 onClick={() => alert("Coming soon")}
              />
