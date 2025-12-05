@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>CommitAI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'system-ui', 'sans-serif'],
+              mono: ['"SF Mono"', 'SFMono-Regular', 'ui-monospace', 'Menlo', 'monospace'],
+            },
+            colors: {
+              'acid-green': '#FFEE32', // Keeping the core yellow brand color
+              'hot-pink': '#ff00ff',
+              'safety-orange': '#ff5f00',
+              'punch-blue': '#0033ff',
+              'off-white': '#f8f8f8', // Softer white
+              'vote-red': '#b91c1c',
+              'vote-orange': '#FF6B00',
+              'vote-ice': '#60A5FA',
+            },
+            boxShadow: {
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+              'glow': '0 0 15px rgba(255, 255, 255, 0.5)',
+              'soft': '0 4px 12px rgba(0, 0, 0, 0.05)',
+            },
+            screens: {
+              'xs': '375px',
+              'sm': '640px',
+              'md': '768px',
+              'lg': '1024px',
+              'xl': '1280px',
+            },
+            animation: {
+              'liquid-swirl': 'liquidSwirl 8s ease-in-out infinite',
+              'squish': 'squish 0.3s cubic-bezier(0.25, 1.5, 0.5, 1)',
+              'fill-up': 'fillUp 0.5s ease-out forwards',
+              'float-slow': 'float 6s ease-in-out infinite',
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            },
+            keyframes: {
+              liquidSwirl: {
+                '0%, 100%': { transform: 'translate(0, 0) scale(1.0)' },
+                '33%': { transform: 'translate(2%, 2%) scale(1.02)' },
+                '66%': { transform: 'translate(-2%, 1%) scale(0.98)' },
+              },
+              squish: {
+                '0%': { transform: 'scale(1)' },
+                '40%': { transform: 'scale(0.95, 1.05)' },
+                '100%': { transform: 'scale(1)' },
+              },
+              fillUp: {
+                '0%': { transform: 'scaleY(0)', transformOrigin: 'bottom' },
+                '100%': { transform: 'scaleY(1)', transformOrigin: 'bottom' },
+              },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-5px)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #f2f2f7; /* Apple system gray 6 */
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+        overscroll-behavior-y: none;
+        color: #1c1c1e;
+      }
+      
+      h1, h2, h3, h4, h5, h6 {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+        font-weight: 600; /* Reduced from 700/black */
+        letter-spacing: -0.01em;
+      }
+
+      /* Safe Area Utilities */
+      .pt-safe { padding-top: env(safe-area-inset-top); }
+      .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+      .pl-safe { padding-left: env(safe-area-inset-left); }
+      .pr-safe { padding-right: env(safe-area-inset-right); }
+      
+      .top-safe { top: env(safe-area-inset-top); }
+      .bottom-safe { bottom: env(safe-area-inset-bottom); }
+      
+      input, select, textarea {
+        -webkit-appearance: none;
+        border-radius: 12px;
+        font-size: 16px !important;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      }
+      
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* --- LIQUID GLASS & MINIMALIST EFFECTS --- */
+
+      .liquid-container {
+        position: relative;
+        overflow: hidden;
+        transform: translateZ(0);
+      }
+
+      .liquid-fluid {
+        position: absolute;
+        inset: -10%;
+        width: 120%;
+        height: 120%;
+        background: inherit;
+        filter: blur(12px) saturate(1.2);
+        opacity: 0.8;
+        z-index: 0;
+        transition: transform 0.3s ease-out;
+      }
+      
+      .liquid-glare {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.1) 100%);
+        pointer-events: none;
+        z-index: 10;
+        border-radius: inherit;
+      }
+
+      .jelly-button {
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .jelly-button:active {
+        transform: scale(0.96);
+      }
+      .jelly-button:hover .liquid-fluid {
+        animation: liquidSwirl 6s ease-in-out infinite alternate;
+      }
+
+      /* Updated Glass Panel Effect */
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+      }
+
+      .liquid-list-item {
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .liquid-list-item:hover {
+        transform: scale(1.02);
+        z-index: 20;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+      }
+
+      .liquid-input:focus {
+        background-color: #fff;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+      }
+    </style>
+    <!-- MediaPipe Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

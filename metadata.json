@@ -1,0 +1,8 @@
+{
+  "name": "3rd Dec CommitAI",
+  "description": "A neo-brutalist fitness app that gamifies workouts with social betting and AI-generated roasts.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}

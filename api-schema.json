@@ -1,0 +1,179 @@
+{
+  "meta": {
+    "title": "CommitAI API Specification",
+    "version": "1.0.0",
+    "description": "Comprehensive documentation of Data Models and API Endpoints required to power the CommitAI application."
+  },
+  "dataModels": {
+    "User": {
+      "description": "Represents a registered user in the ecosystem.",
+      "attributes": {
+        "id": { "type": "string (UUID)", "description": "Unique identifier" },
+        "username": { "type": "string", "description": "Display name" },
+        "avatar_url": { "type": "string", "description": "URL to profile image" },
+        "level": { "type": "integer", "description": "Calculated user level" },
+        "coins": { "type": "integer", "description": "Current virtual currency balance" },
+        "gym_id": { "type": "string (UUID)", "description": "Foreign key to Gym table" },
+        "stats": {
+          "type": "object",
+          "properties": {
+            "current_streak": "integer",
+            "total_workouts": "integer",
+            "badges": "array[string]"
+          }
+        },
+        "created_at": "timestamp"
+      }
+    },
+    "Gym": {
+      "description": "Physical or virtual location where users workout.",
+      "attributes": {
+        "id": { "type": "string (UUID)", "description": "Unique identifier" },
+        "name": { "type": "string", "description": "Name of the gym" },
+        "location": { "type": "string", "description": "City or Region" },
+        "is_partner": { "type": "boolean", "description": "Verified partner status" },
+        "member_count": { "type": "integer", "description": "Cached count of affiliated users" }
+      }
+    },
+    "Commitment": {
+      "description": "A workout pledge displayed in the Trending Feed.",
+      "attributes": {
+        "id": { "type": "string (UUID)", "description": "Unique identifier" },
+        "user_id": { "type": "string (UUID)", "description": "Creator of the commitment" },
+        "workout_title": { "type": "string", "description": "e.g. '100 Pushups'" },
+        "deadline": { "type": "timestamp", "description": "When the commitment expires" },
+        "status": { "type": "enum", "values": ["PENDING", "COMPLETED", "FAILED"] },
+        "vote_counts": { 
+            "type": "object", 
+            "properties": { "back": "integer", "callout": "integer" } 
+        }
+      }
+    },
+    "Vote": {
+      "description": "A social bet placed on a Commitment.",
+      "attributes": {
+        "id": { "type": "string (UUID)", "description": "Unique identifier" },
+        "commitment_id": { "type": "string (UUID)", "description": "Target commitment" },
+        "user_id": { "type": "string (UUID)", "description": "Voter" },
+        "type": { "type": "enum", "values": ["BACK", "CALLOUT"] },
+        "amount": { "type": "integer", "description": "Coins wagered (fixed at 50)" },
+        "timestamp": { "type": "timestamp" }
+      }
+    },
+    "LiveSession": {
+      "description": "Active realtime workout session.",
+      "attributes": {
+        "id": { "type": "string (UUID)", "description": "Unique identifier" },
+        "host_id": { "type": "string (UUID)", "description": "User streaming" },
+        "stream_status": { "type": "enum", "values": ["LIVE", "ENDED"] },
+        "viewers": { "type": "integer", "description": "Current viewer count" },
+        "hype_score": { "type": "integer", "description": "Aggregate of reactions" }
+      }
+    },
+    "Quest": {
+      "description": "System generated challenges for users.",
+      "attributes": {
+        "id": { "type": "string (UUID)" },
+        "title": { "type": "string" },
+        "metric": { "type": "enum", "values": ["PUSHUPS", "SQUATS", "STEPS"] },
+        "target_value": { "type": "integer" },
+        "reward_coins": { "type": "integer" },
+        "expires_at": { "type": "timestamp" }
+      }
+    }
+  },
+  "apiEndpoints": {
+    "Authentication": [
+      {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "description": "Authenticate user via username (Prototype) or OAuth.",
+        "body": { "username": "string" },
+        "response": { "token": "jwt", "user": "User" }
+      }
+    ],
+    "User Management": [
+      {
+        "method": "GET",
+        "path": "/api/users/me",
+        "description": "Get current user profile.",
+        "headers": ["Authorization"],
+        "response": "User"
+      },
+      {
+        "method": "PATCH",
+        "path": "/api/users/me",
+        "description": "Update user details (avatar, gym).",
+        "body": { "avatar_url": "string", "gym_id": "string" }
+      }
+    ],
+    "Feed & Commitments": [
+      {
+        "method": "GET",
+        "path": "/api/feed",
+        "description": "Get paginated list of commitments.",
+        "params": { "page": "integer", "limit": "integer" },
+        "response": { "data": "Commitment[]", "nextPage": "integer" }
+      },
+      {
+        "method": "POST",
+        "path": "/api/commitments",
+        "description": "Create a new workout commitment.",
+        "body": { "title": "string", "deadline": "timestamp" },
+        "response": "Commitment"
+      },
+      {
+        "method": "POST",
+        "path": "/api/commitments/{id}/vote",
+        "description": "Place a bet on a commitment.",
+        "body": { "type": "BACK | CALLOUT" },
+        "response": { "success": "boolean", "new_balance": "integer" }
+      }
+    ],
+    "Live Arena (Realtime)": [
+      {
+        "method": "GET",
+        "path": "/api/live",
+        "description": "Get active live sessions.",
+        "response": "LiveSession[]"
+      },
+      {
+        "method": "POST",
+        "path": "/api/live/start",
+        "description": "Initialize a live stream session.",
+        "response": { "session_id": "string", "stream_token": "string" }
+      },
+      {
+        "method": "POST",
+        "path": "/api/live/{id}/log",
+        "description": "Log final results of a session.",
+        "body": { "reps": "integer", "success": "boolean" },
+        "response": { "xp_earned": "integer" }
+      }
+    ],
+    "Leaderboards": [
+      {
+        "method": "GET",
+        "path": "/api/leaderboard",
+        "params": { "type": "GLOBAL | MACHINES | SHARKS" },
+        "response": "LeaderboardEntry[]"
+      }
+    ],
+    "AI Services": [
+      {
+        "method": "POST",
+        "path": "/api/ai/roast",
+        "description": "Generate a workout roast.",
+        "body": { "workout_title": "string", "result": "string", "bet_count": "integer" },
+        "response": { "text": "string" }
+      },
+      {
+        "method": "POST",
+        "path": "/api/ai/tagline",
+        "description": "Generate daily profile tagline.",
+        "body": { "stats": "UserStats" },
+        "response": { "tagline": "string" }
+      }
+    ]
+  }
+}
