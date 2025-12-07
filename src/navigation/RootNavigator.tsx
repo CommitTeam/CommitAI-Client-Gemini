@@ -16,6 +16,8 @@ import { COLORS } from '@/constants';
 // Import Screens
 import {
   LoginScreen,
+  SignUpScreen,
+  OTPVerificationScreen,
   AvatarSelectionScreen,
   HomeScreen,
   MoveScreen,
@@ -65,6 +67,12 @@ const RootNavigator: React.FC = () => {
       >
         {/* Auth Screens */}
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen
+          name="OTPVerification"
+          component={OTPVerificationScreen}
+          options={{ animation: 'slide_from_right' }}
+        />
         <Stack.Screen
           name="AvatarSelection"
           component={AvatarSelectionScreen}
