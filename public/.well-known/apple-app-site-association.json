@@ -1,0 +1,14 @@
+{
+    "applinks": {
+        "apps": [],
+        "details": [
+        {
+            "appID": "6756032262.com.commit.ai.commit.ai",
+            "paths": [
+            "/",
+            "/ai/*"
+            ]
+        }
+        ]
+    }
+}
