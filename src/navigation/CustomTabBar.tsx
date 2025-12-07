@@ -1,12 +1,12 @@
-// ============================================
-// CommitAI Mobile - Custom Tab Bar Component
-// Floating bottom navigation with elevated center button
-// ============================================
-
 import React from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Flame, User } from 'lucide-react-native';
 import { COLORS } from '@/constants';
+import { MainTabParamList } from './FeedStackParamList';
+import { HomeScreen, MoveScreen, ProfileScreen } from '@/screens';
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 interface TabBarProps {
   state: any;
@@ -16,8 +16,8 @@ interface TabBarProps {
 
 const CustomTabBar: React.FC<TabBarProps> = ({ state, navigation }) => {
   return (
-    <View style={styles.tabBarContainer}>
-      <View style={styles.tabBar}>
+    <View className="absolute bottom-6 left-4 right-4">
+      <View className="flex-row items-center justify-between bg-white/90 rounded-[32px] h-16 px-8 shadow-lg border border-white/50">
         {state.routes.map((route: any, index: number) => {
           const isFocused = state.index === index;
 
@@ -33,19 +33,14 @@ const CustomTabBar: React.FC<TabBarProps> = ({ state, navigation }) => {
             }
           };
 
-          // Center button (Move) has special styling
           if (route.name === 'Move') {
             return (
-              <View key={route.key} style={styles.centerButtonWrapper}>
+              <View key={route.key} className="absolute left-0 right-0 -top-6 items-center justify-center z-10">
                 <Pressable
                   onPress={onPress}
-                  style={styles.centerButton}
+                  className="w-16 h-16 rounded-full bg-black items-center justify-center shadow-lg"
                 >
-                  <Flame
-                    size={28}
-                    color={COLORS.acidGreen}
-                    fill={COLORS.acidGreen}
-                  />
+                  <Flame size={28} color={COLORS.acidGreen} fill={COLORS.acidGreen} />
                 </Pressable>
               </View>
             );
@@ -54,11 +49,7 @@ const CustomTabBar: React.FC<TabBarProps> = ({ state, navigation }) => {
           const IconComponent = route.name === 'Home' ? Home : User;
 
           return (
-            <Pressable
-              key={route.key}
-              onPress={onPress}
-              style={styles.tabButton}
-            >
+            <Pressable key={route.key} onPress={onPress} className="p-2 z-[1]">
               <IconComponent
                 size={24}
                 color={isFocused ? COLORS.black : COLORS.systemGray1}
@@ -72,57 +63,12 @@ const CustomTabBar: React.FC<TabBarProps> = ({ state, navigation }) => {
   );
 };
 
+export const MainTabs = () => (
+  <Tab.Navigator tabBar={(props) => <CustomTabBar {...props} />} screenOptions={{ headerShown: false }}>
+    <Tab.Screen name="Home" component={HomeScreen} />
+    <Tab.Screen name="Move" component={MoveScreen} />
+    <Tab.Screen name="Profile" component={ProfileScreen} />
+  </Tab.Navigator>
+);
+
 export default CustomTabBar;
-
-// ---------- Styles ----------
-
-const styles = StyleSheet.create({
-  tabBarContainer: {
-    position: 'absolute',
-    bottom: 24,
-    left: 16,
-    right: 16,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 32,
-    height: 64,
-    paddingHorizontal: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 24,
-    elevation: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  tabButton: {
-    padding: 8,
-    zIndex: 1,
-  },
-  centerButtonWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: -24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  centerButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: COLORS.black,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-});
