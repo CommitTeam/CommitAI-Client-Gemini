@@ -216,12 +216,14 @@ export interface TaglineResponse {
 
 export type RootStackParamList = {
   Login: undefined;
+  SignUp: undefined;
+  OTPVerification: { email: string; username: string };
   AvatarSelection: { username: string };
   GymSelection: { userId: string };
   Main: undefined;
-  LiveWorkout: { 
-    exerciseType: string; 
-    target: string; 
+  LiveWorkout: {
+    exerciseType: string;
+    target: string;
     duration: string;
     isPrivate?: boolean;
   };
