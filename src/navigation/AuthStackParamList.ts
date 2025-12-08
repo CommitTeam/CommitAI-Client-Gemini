@@ -1,8 +1,6 @@
-// ============================================
-// CommitAI Mobile - Auth Stack Navigation Types
-// ============================================
-
 export type AuthStackParamList = {
   Login: undefined;
+  SignUp: undefined;
+  OTPVerification: { phoneNumber: string };
   AvatarSelection: { username: string };
 };

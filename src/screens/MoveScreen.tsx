@@ -15,6 +15,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -26,12 +28,16 @@ import {
   Play,
 } from 'lucide-react-native';
 
-import { RootStackParamList, User, WorkoutType } from '@/types';
+import { User, WorkoutType } from '@/types';
 import { COLORS, WORKOUT_TYPES, WORKOUT_TARGETS, WORKOUT_TIMES } from '@/constants';
 import { getCurrentUser, createCommitment } from '@/services/backend';
 import { BrutalistButton } from '@/components/ui';
+import { FeedStackParamList, MainTabParamList } from '@/navigation/FeedStackParamList';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, 'Move'>,
+  NativeStackNavigationProp<FeedStackParamList>
+>;
 
 const { width } = Dimensions.get('window');
 

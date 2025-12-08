@@ -1,8 +1,3 @@
-// ============================================
-// CommitAI Mobile - Hero Banner Component
-// Auto-scrolling carousel with personalized slides
-// ============================================
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
@@ -349,7 +344,7 @@ const styles = StyleSheet.create({
   },
   bottomGradient: {
     position: 'absolute',
-    bottom: 60,
+    bottom: 0,
     left: 0,
     right: 0,
     height: '60%',
@@ -359,7 +354,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60,
+    height: 140,
   },
   slideContent: {
     position: 'absolute',

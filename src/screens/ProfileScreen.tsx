@@ -1,13 +1,7 @@
-// ============================================
-// CommitAI Mobile - Profile Screen
-// User profile with stats, settings, and mascot
-// ============================================
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   Alert,
@@ -16,6 +10,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import {
@@ -32,16 +28,25 @@ import {
   Shield,
   Trash2,
 } from 'lucide-react-native';
+import { useDispatch } from 'react-redux';
 
-import { RootStackParamList, User } from '@/types';
+import { User } from '@/types';
 import { COLORS } from '@/constants';
-import { getCurrentUser, logout, deleteUser } from '@/services/backend';
+import { getCurrentUser, deleteUser } from '@/services/backend';
 import { BrutalistButton } from '@/components/ui';
+import { FeedStackParamList, MainTabParamList } from '@/navigation/FeedStackParamList';
+import { deleteAccessToken, deleteRefreshToken, deleteUsername } from '@/store/secureStore';
+import { resetAuth } from '@/store/authSlice';
+import type { AppDispatch } from '@/store/store';
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type NavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, 'Profile'>,
+  NativeStackNavigationProp<FeedStackParamList>
+>;
 
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const dispatch = useDispatch<AppDispatch>();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
@@ -67,8 +72,11 @@ const ProfileScreen: React.FC = () => {
           text: 'Log Out',
           style: 'destructive',
           onPress: async () => {
-            await logout();
-            navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+            await deleteAccessToken();
+            await deleteRefreshToken();
+            await deleteUsername();
+
+            dispatch(resetAuth());
           },
         },
       ]
@@ -102,9 +110,9 @@ const ProfileScreen: React.FC = () => {
 
   if (!currentUser) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+      <SafeAreaView className="flex-1 bg-systemBg">
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-base text-systemGray1">Loading...</Text>
         </View>
       </SafeAreaView>
     );
@@ -115,50 +123,50 @@ const ProfileScreen: React.FC = () => {
     `https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser.name}`;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView className="flex-1 bg-systemBg" edges={['top']}>
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Profile Header */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelText}>{currentUser.level}</Text>
+        <View className="items-center pt-5 pb-6">
+          <View className="relative mb-4">
+            <Image source={{ uri: avatarUrl }} className="w-[100px] h-[100px] rounded-[50px] bg-systemGray6" />
+            <View className="absolute bottom-0 right-0 bg-black w-8 h-8 rounded-2xl items-center justify-center border-[3px] border-systemBg">
+              <Text className="text-sm font-black text-acidGreen">{currentUser.level}</Text>
             </View>
           </View>
-          <Text style={styles.userName}>{currentUser.name}</Text>
+          <Text className="text-[28px] font-extrabold text-black mb-1">{currentUser.name}</Text>
           {currentUser.gym && (
-            <Text style={styles.gymName}>{currentUser.gym.name}</Text>
+            <Text className="text-sm font-semibold text-systemGray1">{currentUser.gym.name}</Text>
           )}
         </View>
 
         {/* Stats Cards */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
+        <View className="flex-row gap-3 mb-5">
+          <View className="flex-1 bg-white rounded-[20px] p-4 items-center shadow-sm">
             <Zap size={24} color={COLORS.acidGreen} fill={COLORS.acidGreen} />
-            <Text style={styles.statValue}>{currentUser.coins}</Text>
-            <Text style={styles.statLabel}>Points</Text>
+            <Text className="text-2xl font-black text-black mt-2">{currentUser.coins}</Text>
+            <Text className="text-[11px] font-semibold text-systemGray1 uppercase tracking-wider">Points</Text>
           </View>
-          <View style={styles.statCard}>
+          <View className="flex-1 bg-white rounded-[20px] p-4 items-center shadow-sm">
             <Flame size={24} color={COLORS.voteOrange} fill={COLORS.voteOrange} />
-            <Text style={styles.statValue}>{currentUser.stats.currentStreak}</Text>
-            <Text style={styles.statLabel}>Streak</Text>
+            <Text className="text-2xl font-black text-black mt-2">{currentUser.stats.currentStreak}</Text>
+            <Text className="text-[11px] font-semibold text-systemGray1 uppercase tracking-wider">Streak</Text>
           </View>
-          <View style={styles.statCard}>
+          <View className="flex-1 bg-white rounded-[20px] p-4 items-center shadow-sm">
             <Trophy size={24} color={COLORS.punchBlue} />
-            <Text style={styles.statValue}>{currentUser.stats.totalWorkouts}</Text>
-            <Text style={styles.statLabel}>Workouts</Text>
+            <Text className="text-2xl font-black text-black mt-2">{currentUser.stats.totalWorkouts}</Text>
+            <Text className="text-[11px] font-semibold text-systemGray1 uppercase tracking-wider">Workouts</Text>
           </View>
         </View>
 
         {/* Marketplace Button */}
-        <Pressable style={styles.marketplaceCard} onPress={handleMarketplace}>
-          <View style={styles.marketplaceContent}>
-            <Text style={styles.marketplaceTitle}>🛍️ Marketplace</Text>
-            <Text style={styles.marketplaceSubtitle}>
+        <Pressable className="flex-row items-center bg-white rounded-[20px] p-5 mb-6 shadow-sm" onPress={handleMarketplace}>
+          <View className="flex-1">
+            <Text className="text-lg font-bold text-black mb-1">🛍️ Marketplace</Text>
+            <Text className="text-[13px] text-systemGray1">
               Unlock skins, effects & rewards
             </Text>
           </View>
@@ -166,14 +174,14 @@ const ProfileScreen: React.FC = () => {
         </Pressable>
 
         {/* Settings Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Settings</Text>
-          
-          <View style={styles.settingsCard}>
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
+        <View className="mb-6">
+          <Text className="text-[13px] font-bold text-systemGray1 uppercase tracking-wide mb-3 ml-1">Settings</Text>
+
+          <View className="bg-white rounded-[20px] overflow-hidden shadow-sm">
+            <View className="flex-row items-center justify-between p-4">
+              <View className="flex-row items-center gap-3">
                 <Bell size={20} color={COLORS.black} />
-                <Text style={styles.settingLabel}>Notifications</Text>
+                <Text className="text-base font-semibold text-black">Notifications</Text>
               </View>
               <Switch
                 value={notificationsEnabled}
@@ -183,12 +191,12 @@ const ProfileScreen: React.FC = () => {
               />
             </View>
 
-            <View style={styles.settingDivider} />
+            <View className="h-px bg-systemGray5 ml-[52px]" />
 
-            <View style={styles.settingRow}>
-              <View style={styles.settingLeft}>
+            <View className="flex-row items-center justify-between p-4">
+              <View className="flex-row items-center gap-3">
                 <Moon size={20} color={COLORS.black} />
-                <Text style={styles.settingLabel}>Dark Mode</Text>
+                <Text className="text-base font-semibold text-black">Dark Mode</Text>
               </View>
               <Switch
                 value={darkMode}
@@ -201,34 +209,34 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         {/* Support Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
-          
-          <View style={styles.settingsCard}>
-            <Pressable style={styles.settingRow}>
-              <View style={styles.settingLeft}>
+        <View className="mb-6">
+          <Text className="text-[13px] font-bold text-systemGray1 uppercase tracking-wide mb-3 ml-1">Support</Text>
+
+          <View className="bg-white rounded-[20px] overflow-hidden shadow-sm">
+            <Pressable className="flex-row items-center justify-between p-4">
+              <View className="flex-row items-center gap-3">
                 <HelpCircle size={20} color={COLORS.black} />
-                <Text style={styles.settingLabel}>Help & FAQ</Text>
+                <Text className="text-base font-semibold text-black">Help & FAQ</Text>
               </View>
               <ChevronRight size={20} color={COLORS.systemGray2} />
             </Pressable>
 
-            <View style={styles.settingDivider} />
+            <View className="h-px bg-systemGray5 ml-[52px]" />
 
-            <Pressable style={styles.settingRow}>
-              <View style={styles.settingLeft}>
+            <Pressable className="flex-row items-center justify-between p-4">
+              <View className="flex-row items-center gap-3">
                 <MessageSquare size={20} color={COLORS.black} />
-                <Text style={styles.settingLabel}>Send Feedback</Text>
+                <Text className="text-base font-semibold text-black">Send Feedback</Text>
               </View>
               <ChevronRight size={20} color={COLORS.systemGray2} />
             </Pressable>
 
-            <View style={styles.settingDivider} />
+            <View className="h-px bg-systemGray5 ml-[52px]" />
 
-            <Pressable style={styles.settingRow}>
-              <View style={styles.settingLeft}>
+            <Pressable className="flex-row items-center justify-between p-4">
+              <View className="flex-row items-center gap-3">
                 <Shield size={20} color={COLORS.black} />
-                <Text style={styles.settingLabel}>Privacy Policy</Text>
+                <Text className="text-base font-semibold text-black">Privacy Policy</Text>
               </View>
               <ChevronRight size={20} color={COLORS.systemGray2} />
             </Pressable>
@@ -236,123 +244,27 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         {/* Danger Zone */}
-        <View style={styles.section}>
-          <View style={styles.dangerCard}>
-            <Pressable style={styles.dangerRow} onPress={handleLogout}>
+        <View className="mb-6">
+          <View className="bg-white rounded-[20px] overflow-hidden border border-red-700/20">
+            <Pressable className="flex-row items-center gap-3 p-4" onPress={handleLogout}>
               <LogOut size={20} color={COLORS.voteRed} />
-              <Text style={styles.dangerLabel}>Log Out</Text>
+              <Text className="text-base font-semibold text-voteRed">Log Out</Text>
             </Pressable>
 
-            <View style={styles.settingDivider} />
+            <View className="h-px bg-systemGray5 ml-[52px]" />
 
-            <Pressable style={styles.dangerRow} onPress={handleDeleteAccount}>
+            <Pressable className="flex-row items-center gap-3 p-4" onPress={handleDeleteAccount}>
               <Trash2 size={20} color={COLORS.voteRed} />
-              <Text style={styles.dangerLabel}>Delete Account</Text>
+              <Text className="text-base font-semibold text-voteRed">Delete Account</Text>
             </Pressable>
           </View>
         </View>
 
         {/* Version */}
-        <Text style={styles.version}>CommitAI v1.0.0</Text>
+        <Text className="text-center text-xs text-systemGray2 mt-5">CommitAI v1.0.0</Text>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default ProfileScreen;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.systemBg },
-  loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loadingText: { fontSize: 16, color: COLORS.systemGray1 },
-  scrollView: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
-
-  // Header
-  header: { alignItems: 'center', paddingTop: 20, paddingBottom: 24 },
-  avatarContainer: { position: 'relative', marginBottom: 16 },
-  avatar: { width: 100, height: 100, borderRadius: 50, backgroundColor: COLORS.systemGray6 },
-  levelBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: COLORS.black,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: COLORS.systemBg,
-  },
-  levelText: { fontSize: 14, fontWeight: '900', color: COLORS.acidGreen },
-  userName: { fontSize: 28, fontWeight: '800', color: COLORS.black, marginBottom: 4 },
-  gymName: { fontSize: 14, fontWeight: '600', color: COLORS.systemGray1 },
-
-  // Stats
-  statsRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  statCard: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statValue: { fontSize: 24, fontWeight: '900', color: COLORS.black, marginTop: 8 },
-  statLabel: { fontSize: 11, fontWeight: '600', color: COLORS.systemGray1, textTransform: 'uppercase', letterSpacing: 0.5 },
-
-  // Marketplace
-  marketplaceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  marketplaceContent: { flex: 1 },
-  marketplaceTitle: { fontSize: 18, fontWeight: '700', color: COLORS.black, marginBottom: 4 },
-  marketplaceSubtitle: { fontSize: 13, color: COLORS.systemGray1 },
-
-  // Sections
-  section: { marginBottom: 24 },
-  sectionTitle: { fontSize: 13, fontWeight: '700', color: COLORS.systemGray1, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12, marginLeft: 4 },
-  settingsCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  settingLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  settingLabel: { fontSize: 16, fontWeight: '600', color: COLORS.black },
-  settingDivider: { height: 1, backgroundColor: COLORS.systemGray5, marginLeft: 52 },
-
-  // Danger
-  dangerCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(185, 28, 28, 0.2)',
-  },
-  dangerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
-  dangerLabel: { fontSize: 16, fontWeight: '600', color: COLORS.voteRed },
-
-  // Version
-  version: { textAlign: 'center', fontSize: 12, color: COLORS.systemGray2, marginTop: 20 },
-});

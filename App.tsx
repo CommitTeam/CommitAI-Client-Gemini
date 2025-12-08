@@ -8,11 +8,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import { Provider } from 'react-redux';
 
 import RootNavigator from '@/navigation/RootNavigator';
 import { runMigrations } from '@/services/storage';
 import { seedDatabase } from '@/services/backend';
 import { COLORS } from '@/constants';
+import { store } from '@/store/store';
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
@@ -65,12 +67,14 @@ export default function App() {
   }
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <RootNavigator />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <Provider store={store}>
+      <GestureHandlerRootView style={styles.root}>
+        <SafeAreaProvider>
+          <StatusBar style="dark" />
+          <RootNavigator />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </Provider>
   );
 }
 

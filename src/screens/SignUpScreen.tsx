@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
@@ -8,21 +8,32 @@ import { User, Mail, Lock, Check } from 'lucide-react-native';
 import { RootStackParamList } from '@/types';
 import { COLORS } from '@/constants';
 import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
+import { signUpUser } from '@/api/auth';
+import { saveUsername } from '@/store/secureStore';
+import { setAccessToken, setRefreshToken } from '@/store/authSlice';
+import { useDispatch } from 'react-redux';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
 
 const SignUpScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-
+  const dispatch = useDispatch()
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const strongPassword = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  const hasWeakPasswordError = password.length > 0 && !strongPassword.test(password);
 
   const handleSignUp = async () => {
     if (!username.trim() || !email.trim() || !password.trim() || !termsAccepted) {
+      return;
+    }
+
+    if (hasWeakPasswordError) {
+      Alert.alert('Password must include 8+ characters, uppercase, lowercase, and a number.');
       return;
     }
 
@@ -30,7 +41,12 @@ const SignUpScreen: React.FC = () => {
     setLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await signUpUser(email, username, password)
+      dispatch(setAccessToken(response.accessToken));
+      dispatch(setRefreshToken(response.refreshToken));
+      await saveUsername(response.username);
+
+      console.log ("Sign-Up Screen: Username", response.username);
       navigation.navigate('OTPVerification', { email, username });
     } catch (error) {
       console.error('Sign up error:', error);
@@ -59,8 +75,12 @@ const SignUpScreen: React.FC = () => {
   return (
     <AuthLayout>
       <View>
-        <Text style={styles.heading}>Create Account</Text>
-        <Text style={styles.subheading}>Join the fitness revolution</Text>
+        <Text className="text-2xl font-black text-black mb-1 text-center">
+          Create Account
+        </Text>
+        <Text className="text-sm text-system-gray-1 mb-6 text-center">
+          Join the fitness revolution
+        </Text>
 
         <AuthInput
           icon={User}
@@ -98,12 +118,21 @@ const SignUpScreen: React.FC = () => {
           secureTextEntry
         />
 
-        <Pressable style={styles.termsContainer} onPress={toggleTerms}>
-          <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+        <Pressable
+          className="flex-row items-center bg-system-gray-6 p-3 rounded-xl mb-4"
+          onPress={toggleTerms}
+        >
+          <View
+            className={`w-6 h-6 rounded-lg border-2 items-center justify-center mr-3 ${
+              termsAccepted
+                ? 'bg-black border-black'
+                : 'bg-white border-system-gray-3'
+            }`}
+          >
             {termsAccepted && <Check size={14} color={COLORS.white} />}
           </View>
-          <Text style={styles.termsText}>
-            I accept the <Text style={styles.termsLink}>Terms & Conditions</Text> and
+          <Text className="flex-1 text-xs text-system-gray-1 leading-4">
+            I accept the <Text className="font-bold text-black underline">Terms & Conditions</Text> and
             Privacy Policy
           </Text>
         </Pressable>
@@ -115,10 +144,10 @@ const SignUpScreen: React.FC = () => {
           loading={loading}
         />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+        <View className="flex-row justify-center mt-6">
+          <Text className="text-sm text-system-gray-1">Already have an account? </Text>
           <Pressable onPress={handleNavigateToLogin}>
-            <Text style={styles.footerLink}>Log In</Text>
+            <Text className="text-sm font-bold text-black underline">Log In</Text>
           </Pressable>
         </View>
       </View>
@@ -127,68 +156,3 @@ const SignUpScreen: React.FC = () => {
 };
 
 export default SignUpScreen;
-
-const styles = StyleSheet.create({
-  heading: {
-    fontSize: 24,
-    fontWeight: '900',
-    color: COLORS.black,
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-  subheading: {
-    fontSize: 14,
-    color: COLORS.systemGray1,
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  termsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.systemGray6,
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: COLORS.systemGray3,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  checkboxChecked: {
-    backgroundColor: COLORS.black,
-    borderColor: COLORS.black,
-  },
-  termsText: {
-    flex: 1,
-    fontSize: 12,
-    color: COLORS.systemGray1,
-    lineHeight: 16,
-  },
-  termsLink: {
-    fontWeight: '700',
-    color: COLORS.black,
-    textDecorationLine: 'underline',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-  },
-  footerText: {
-    fontSize: 14,
-    color: COLORS.systemGray1,
-  },
-  footerLink: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.black,
-    textDecorationLine: 'underline',
-  },
-});

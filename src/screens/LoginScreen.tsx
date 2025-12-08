@@ -4,16 +4,20 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
 import { User, Lock } from 'lucide-react-native';
+import { useDispatch } from 'react-redux';
 
 import { RootStackParamList } from '@/types';
 import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
 import { loginUser } from '@/api/auth';
+import { saveAccessToken, saveUsername } from '@/store/secureStore';
+import { setAccessToken, setUsername as setReduxUsername } from '@/store/authSlice';
+import type { AppDispatch } from '@/store/store';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 const LoginScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-
+  const dispatch = useDispatch<AppDispatch>();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
@@ -27,11 +31,15 @@ const LoginScreen: React.FC = () => {
 
     try {
       const response = await loginUser(username, password);
-      if (response.user.avatar) {
-        navigation.replace('Main');
-      } else {
-        navigation.replace('AvatarSelection', { username: response.user.name });
-      }
+
+      // Save to secure storage
+      await saveAccessToken(response.refreshToken);
+      await saveUsername(response.username);
+
+      // Update Redux state to trigger navigation
+      dispatch(setAccessToken(response.refreshToken));
+      dispatch(setReduxUsername(response.username));
+
     } catch (error) {
       console.error('Login error:', error);
     } finally {

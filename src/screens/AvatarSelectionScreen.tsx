@@ -7,7 +7,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   ScrollView,
   Animated,
@@ -23,6 +22,9 @@ import * as Haptics from 'expo-haptics';
 import { RootStackParamList } from '@/types';
 import { COLORS } from '@/constants';
 import { updateUserAvatar } from '@/services/backend';
+import { saveAccessToken, saveRefreshToken } from '@/store/secureStore';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'AvatarSelection'>;
 type RouteType = RouteProp<RootStackParamList, 'AvatarSelection'>;
@@ -32,8 +34,8 @@ const AVATAR_SIZE = (width - 80) / 3;
 
 // Avatar seeds for DiceBear API
 const AVATAR_SEEDS = [
-  'Bubbles', 'Cookie', 'Sunny', 'Sparkle', 
-  'Jelly', 'Noodle', 'Giggles', 'Waffles', 
+  'Bubbles', 'Cookie', 'Sunny', 'Sparkle',
+  'Jelly', 'Noodle', 'Giggles', 'Waffles',
   'Peanut', 'Bean', 'Pops', 'Doodle'
 ];
 
@@ -42,13 +44,14 @@ const getAvatarUrl = (seed: string) =>
 
 const AvatarSelectionScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const dispatch = useDispatch()
   const route = useRoute<RouteType>();
   const { username } = route.params;
+  const {accessToken, refreshToken} = useSelector((state: RootState) => state.auth)
 
   const [selectedSeed, setSelectedSeed] = useState<string>(AVATAR_SEEDS[0]);
   const [loading, setLoading] = useState(false);
 
-  // Animations
   const scaleAnims = useRef(AVATAR_SEEDS.map(() => new Animated.Value(1))).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
@@ -71,7 +74,7 @@ const AvatarSelectionScreen: React.FC = () => {
 
   const handleSelect = (seed: string, index: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    
+
     // Animate previous selection down
     const prevIndex = AVATAR_SEEDS.indexOf(selectedSeed);
     if (prevIndex !== -1) {
@@ -80,7 +83,7 @@ const AvatarSelectionScreen: React.FC = () => {
         useNativeDriver: true,
       }).start();
     }
-    
+
     // Animate new selection up
     Animated.spring(scaleAnims[index], {
       toValue: 1.15,
@@ -98,10 +101,12 @@ const AvatarSelectionScreen: React.FC = () => {
 
     try {
       const avatarUrl = getAvatarUrl(selectedSeed);
-      // In a real app, we'd get the user ID from context/state
-      // For now, we'll use the username to find the user
       await updateUserAvatar(`u_${username.toLowerCase()}`, avatarUrl);
-      navigation.replace('Main');
+      console.log('accessToken:', accessToken);
+      console.log('refreshToken:', refreshToken);
+      await saveAccessToken(accessToken);
+      await saveRefreshToken(refreshToken);
+
     } catch (error) {
       console.error('Avatar update error:', error);
     } finally {
@@ -110,36 +115,35 @@ const AvatarSelectionScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-systemBg">
       <Animated.View
-        style={[
-          styles.content,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
+        className="flex-1 px-6"
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: slideAnim }],
+        }}
       >
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Pick an Avatar</Text>
-          <Text style={styles.subtitle}>How the world (and AI) sees you.</Text>
+        <View className="items-center pt-6 pb-8">
+          <Text className="text-[28px] font-bold text-black mb-2">Pick an Avatar</Text>
+          <Text className="text-sm text-systemGray1">How the world (and AI) sees you.</Text>
         </View>
 
         {/* Avatar Grid */}
         <ScrollView
-          contentContainerStyle={styles.gridContainer}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.grid}>
+          <View className="flex-row flex-wrap justify-between gap-4">
             {AVATAR_SEEDS.map((seed, index) => {
               const isSelected = selectedSeed === seed;
               return (
                 <Animated.View
                   key={seed}
                   style={[
-                    styles.avatarWrapper,
                     {
+                      width: AVATAR_SIZE,
+                      aspectRatio: 1,
                       transform: [{ scale: scaleAnims[index] }],
                       zIndex: isSelected ? 10 : 1,
                     },
@@ -147,14 +151,23 @@ const AvatarSelectionScreen: React.FC = () => {
                 >
                   <Pressable
                     onPress={() => handleSelect(seed, index)}
-                    style={[
-                      styles.avatarButton,
-                      isSelected && styles.avatarButtonSelected,
-                    ]}
+                    className={`w-full h-full overflow-hidden bg-white shadow-md ${
+                      isSelected
+                        ? 'opacity-100 border-4 border-acidGreen shadow-acidGreen shadow-lg'
+                        : 'opacity-70'
+                    }`}
+                    style={{
+                      borderRadius: AVATAR_SIZE / 2,
+                      shadowColor: isSelected ? COLORS.acidGreen : '#000',
+                      shadowOffset: { width: 0, height: isSelected ? 4 : 2 },
+                      shadowOpacity: isSelected ? 0.4 : 0.1,
+                      shadowRadius: isSelected ? 12 : 8,
+                      elevation: isSelected ? 8 : 3,
+                    }}
                   >
                     <Image
                       source={{ uri: getAvatarUrl(seed) }}
-                      style={styles.avatarImage}
+                      className="w-full h-full"
                       contentFit="cover"
                       transition={200}
                     />
@@ -166,27 +179,45 @@ const AvatarSelectionScreen: React.FC = () => {
         </ScrollView>
 
         {/* Bottom Card */}
-        <View style={styles.bottomCard}>
-          <View style={styles.selectedPreview}>
+        <View
+          className="flex-row items-center bg-white/85 rounded-[32px] p-4 mb-6 gap-3"
+          style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.08,
+            shadowRadius: 16,
+            elevation: 6,
+          }}
+        >
+          <View className="w-14 h-14 rounded-full overflow-hidden bg-systemGray6">
             <Image
               source={{ uri: getAvatarUrl(selectedSeed) }}
-              style={styles.previewImage}
+              className="w-full h-full"
               contentFit="cover"
             />
           </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.readyLabel}>Ready to go</Text>
-            <Text style={styles.usernameText}>{username}</Text>
+          <View className="flex-1">
+            <Text className="text-[10px] font-semibold text-systemGray1 uppercase tracking-widest mb-0.5">
+              Ready to go
+            </Text>
+            <Text className="text-lg font-bold text-black">{username}</Text>
           </View>
           <Pressable
-            style={[styles.confirmButton, loading && styles.confirmButtonLoading]}
+            className={`bg-acidGreen px-6 py-3.5 rounded-[20px] ${loading ? 'opacity-70' : ''}`}
+            style={{
+              shadowColor: COLORS.acidGreen,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 4,
+            }}
             onPress={handleConfirm}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color={COLORS.black} size="small" />
             ) : (
-              <Text style={styles.confirmButtonText}>LET'S GO</Text>
+              <Text className="text-xs font-extrabold text-black tracking-wider">LET'S GO</Text>
             )}
           </Pressable>
         </View>
@@ -196,141 +227,3 @@ const AvatarSelectionScreen: React.FC = () => {
 };
 
 export default AvatarSelectionScreen;
-
-// ============================================
-// Styles
-// ============================================
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.systemBg,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-
-  // Header
-  header: {
-    alignItems: 'center',
-    paddingTop: 24,
-    paddingBottom: 32,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.black,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.systemGray1,
-  },
-
-  // Grid
-  gridContainer: {
-    flexGrow: 1,
-    paddingBottom: 24,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-  avatarWrapper: {
-    width: AVATAR_SIZE,
-    aspectRatio: 1,
-  },
-  avatarButton: {
-    width: '100%',
-    height: '100%',
-    borderRadius: AVATAR_SIZE / 2,
-    overflow: 'hidden',
-    backgroundColor: COLORS.white,
-    opacity: 0.7,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  avatarButtonSelected: {
-    opacity: 1,
-    borderWidth: 4,
-    borderColor: COLORS.acidGreen,
-    shadowColor: COLORS.acidGreen,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  avatarImage: {
-    width: '100%',
-    height: '100%',
-  },
-
-  // Bottom Card
-  bottomCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    borderRadius: 32,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 6,
-    gap: 12,
-  },
-  selectedPreview: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
-    backgroundColor: COLORS.systemGray6,
-  },
-  previewImage: {
-    width: '100%',
-    height: '100%',
-  },
-  userInfo: {
-    flex: 1,
-  },
-  readyLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.systemGray1,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 2,
-  },
-  usernameText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.black,
-  },
-  confirmButton: {
-    backgroundColor: COLORS.acidGreen,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 20,
-    shadowColor: COLORS.acidGreen,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  confirmButtonLoading: {
-    opacity: 0.7,
-  },
-  confirmButtonText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: COLORS.black,
-    letterSpacing: 1,
-  },
-});

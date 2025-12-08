@@ -39,7 +39,7 @@ const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
-const generateId = (prefix: string = 'id') => 
+const generateId = (prefix: string = 'id') =>
   `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 const generateVotes = (backCount: number, calloutCount: number): Vote[] => {
@@ -75,7 +75,7 @@ export const seedDatabase = async (): Promise<void> => {
   const mockUsers: User[] = MOCK_NAMES.slice(0, 20).map((name, i) => {
     const coinHistory: CoinTransaction[] = [];
     const wins = Math.floor(Math.random() * 50);
-    
+
     for (let j = 0; j < wins; j++) {
       coinHistory.push({
         id: `tx_seed_${i}_${j}`,
@@ -232,10 +232,6 @@ export const getUserById = async (userId: string): Promise<User | null> => {
 
 export const getCurrentUser = async (): Promise<User | null> => {
   return await UserStorage.loadCurrent();
-};
-
-export const logout = async (): Promise<void> => {
-  await UserStorage.clearCurrent();
 };
 
 // ---------- Commitment Operations ----------
