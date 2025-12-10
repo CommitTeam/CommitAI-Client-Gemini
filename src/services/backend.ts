@@ -234,6 +234,14 @@ export const getCurrentUser = async (): Promise<User | null> => {
   return await UserStorage.loadCurrent();
 };
 
+export const logout = async (): Promise<void> => {
+  const currentUser = await UserStorage.loadCurrent();
+  if (currentUser) {
+    await logActivity(currentUser.id, 'LOGOUT');
+  }
+  await UserStorage.clearCurrent();
+};
+
 // ---------- Commitment Operations ----------
 
 export const createCommitment = async (
