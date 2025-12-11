@@ -19,6 +19,10 @@ export default () => ({
             bundleIdentifier: "com.commit.ai.commit.ai",
             supportsTablet: false,
             newArchEnabled: true,
+            entitlements: {
+                "com.apple.developer.healthkit": true,
+                "com.apple.developer.healthkit.access": []
+            },
             splash: {
                 image: "./assets/splash-static.png",
                 contentFit: "contain",
@@ -27,7 +31,9 @@ export default () => ({
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
                 NSCameraUsageDescription: "This app requires to enable workout tracking and live video streaming",
-                NSContactsUsageDescription: "CommitAI uses your contacts to help you invite friends to challenges and find teammates."
+                NSContactsUsageDescription: "CommitAI uses your contacts to help you invite friends to challenges and find teammates.",
+                NSHealthShareUsageDescription: "CommitAI needs access to your health data to track your workouts and fitness progress.",
+                NSHealthUpdateUsageDescription: "CommitAI needs permission to save workout data to your Health app."
             },
             associatedDomains: ["applinks:icommit.ai"]
         },
