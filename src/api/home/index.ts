@@ -1,7 +1,3 @@
-// Home API - Used by HomeScreen for feed and commitments
-import { User, Commitment } from '@/types';
-import { CommitmentStorage, VoteStorage } from '@/services/storage';
-import { delay, generateId, logActivity } from '../common/utils';
 import axiosInstance from '@/utils/refresh';
 
 export const createPost = async (workout:string, level:string, targetRepCount:string, timeLimit:string, challengeType:string, coins:number, challenger:string) => {
