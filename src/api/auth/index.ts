@@ -3,13 +3,13 @@ import { API_URL } from '@/utils/apiConfig';
 
 export const loginUser = async (email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_URL}/api/auth/login`, {
+    const {data} = await axios.post(`${API_URL}/api/auth/login`, {
       email,
       password,
     });
 
-    console.log('Login response:', response.data);
-    return response.data;
+    console.log('Login response:', data);
+    return data;
 
   } catch (error) {
     console.log('Login error:', error);
