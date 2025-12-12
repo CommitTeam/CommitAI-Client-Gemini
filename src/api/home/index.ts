@@ -2,42 +2,29 @@
 import { User, Commitment } from '@/types';
 import { CommitmentStorage, VoteStorage } from '@/services/storage';
 import { delay, generateId, logActivity } from '../common/utils';
+import axiosInstance from '@/utils/refresh';
 
-export const createCommitment = async (
-  user: User,
-  workoutTitle: string,
-  deadline: number
-): Promise<Commitment> => {
-  const commitment: Commitment = {
-    id: generateId('c'),
-    user,
-    workoutTitle,
-    deadline,
-    votes: [],
-  };
+export const createPost = async (workout:string, level:string, targetRepCount:string, timeLimit:string, challengeType:string, coins:number, challenger:string) => {
+  try {
+    const response = await axiosInstance.get(`/api/post/createPost`)
+    console.log('Create Post Data:', response.data)
+    return response.data.primaryPostData
+  } catch (error) {
+    console.log('Login error:', error);
+    throw error;
+  }
+}
 
-  const commitments = (await CommitmentStorage.loadAll()) || [];
-  commitments.unshift(commitment);
-  await CommitmentStorage.saveAll(commitments);
+export const getPost = async (username:string) => {
 
-  await logActivity(user.id, 'CREATE_COMMITMENT', { workoutTitle });
-
-  return commitment;
-};
-
-export const getFeed = async (currentUserId: string): Promise<Commitment[]> => {
-  await delay(100);
-
-  const commitments = (await CommitmentStorage.loadAll()) || [];
-  const globalVotes = (await VoteStorage.loadAll()) || [];
-
-  return commitments.map((c) => {
-    const userVote = globalVotes.find(
-      (v: any) => v.userId === currentUserId && v.targetId === c.id
-    );
-    return {
-      ...c,
-      currentUserVote: userVote?.type,
-    };
-  });
-};
+  try {
+    const response = await axiosInstance.get(`/api/post/getPost`, {
+      params: { username }
+    })
+    console.log('User Feed:', response.data)
+    return response.data
+  } catch (error) {
+    console.log('UserFeed error', error)
+    throw error
+  }
+}
