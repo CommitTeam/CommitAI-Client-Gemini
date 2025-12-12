@@ -9,8 +9,8 @@ import { useDispatch } from 'react-redux';
 import { RootStackParamList } from '@/types';
 import { AuthLayout, AuthInput, AuthButton } from '@/components/auth';
 import { loginUser } from '@/api/auth';
-import { saveAccessToken, saveUsername } from '@/store/secureStore';
-import { setAccessToken, setUsername as setReduxUsername } from '@/store/authSlice';
+import { saveAccessToken, saveRefreshToken, saveUsername } from '@/store/secureStore';
+import { setAccessToken, setRefreshToken, setUsername as setUsernameAction } from '@/store/authSlice';
 import type { AppDispatch } from '@/store/store';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
@@ -32,13 +32,13 @@ const LoginScreen: React.FC = () => {
     try {
       const response = await loginUser(username, password);
 
-      // Save to secure storage
-      await saveAccessToken(response.refreshToken);
+      await saveAccessToken(response.accessToken);
+      await saveRefreshToken(response.refreshToken);
       await saveUsername(response.username);
 
-      // Update Redux state to trigger navigation
-      dispatch(setAccessToken(response.refreshToken));
-      dispatch(setReduxUsername(response.username));
+      dispatch(setAccessToken(response.accessToken));
+      dispatch(setRefreshToken(response.refreshToken));
+      dispatch(setUsernameAction(response.username))
 
     } catch (error) {
       console.error('Login error:', error);
