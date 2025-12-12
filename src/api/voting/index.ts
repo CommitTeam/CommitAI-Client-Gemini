@@ -3,6 +3,7 @@ import { CoinTransaction, VoteResponse } from '@/types';
 import { UserStorage, CommitmentStorage, VoteStorage } from '@/services/storage';
 import { VOTE_CONFIG } from '@/constants';
 import { generateId, logActivity } from '../common/utils';
+import axiosInstance from '@/utils/refresh';
 
 export const placeVote = async (
   userId: string,
@@ -74,3 +75,20 @@ export const placeVote = async (
 
   return { success: true, message: 'Vote Placed!', updatedUser: user };
 };
+
+
+export const setBetResponse = async (postId: string) => {
+  try {
+    const { data } = await axiosInstance.post(`/api/liveWorkout/setBetResponse`, {
+      postId,
+    });
+
+    console.log("Set Bet Response:", data);
+    return data;
+
+  } catch (error) {
+    console.error("Set Bet Response Error:", error);
+    throw error;
+  }
+};
+
