@@ -9,7 +9,7 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     async (config) => {
         const accessToken = await getAccessToken();
-        console.log('[Request Interceptor] Access Token:', accessToken ? 'Present' : 'Missing');
+        console.log('[Request Interceptor] Access Token:', accessToken);
         if (accessToken && !config.headers.Authorization) {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
@@ -26,7 +26,7 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
             console.log('[Response Interceptor] 401 Unauthorized - Attempting token refresh');
             originalRequest._retry = true;
 
@@ -58,4 +58,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-
