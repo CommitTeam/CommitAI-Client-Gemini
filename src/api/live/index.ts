@@ -28,15 +28,17 @@ try {
 }
 }
 
-export const getToken = async (channel:string, username:string, role:string) => {
-try {
-    const { data } = await axiosInstance.post(`/api/liveWorkout/getToken`, {
-    params: { channel, username, role }, 
-    })
-    console.log ("Get Token:", data)
-} catch (error) {
-    console.error("Get Token Error", error)
-    throw error
-
-}
-}
+export const getToken = async (channel: string, username: string, role: string) => {
+    try {
+        const { data } = await axiosInstance.post(`/api/liveWorkout/getToken`, {
+            channel,
+            username,
+            role,
+        });
+        console.log("Get Token:", data);
+        return data;
+    } catch (error) {
+        console.error("Get Token Error", error);
+        throw error;
+    }
+};
