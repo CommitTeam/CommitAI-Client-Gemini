@@ -6,22 +6,62 @@ import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, ActivityIndicator, LogBox } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { Provider } from 'react-redux';
+import {
+  useFonts,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
+} from '@expo-google-fonts/inter';
 
 import RootNavigator from '@/navigation/RootNavigator';
 import { runMigrations } from '@/services/storage';
 import { seedDatabase } from '@/services/backend';
-import { COLORS } from '@/constants';
+import { COLORS, FONTS } from '@/constants';
 import { store } from '@/store/store';
 
 // Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
+// Silence noisy dev-only logs (bridgeless + seed chatter)
+if (__DEV__) {
+  LogBox.ignoreLogs([
+    'Bridgeless mode is enabled',
+    'JavaScript logs will be removed from Metro in React Native 0.77',
+  ]);
+
+  const suppressedPhrases = [
+    'Bridgeless mode is enabled',
+    'JavaScript logs will be removed from Metro',
+    'Seeding Database',
+    'Database already seeded',
+  ];
+  const originalConsoleLog = console.log;
+  console.log = (...args: unknown[]) => {
+    const first = args[0];
+    if (typeof first === 'string' && suppressedPhrases.some((p) => first.includes(p))) {
+      return;
+    }
+    originalConsoleLog(...args);
+  };
+}
+
 export default function App() {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load Inter fonts
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
+  });
 
   useEffect(() => {
     async function prepare() {
@@ -32,8 +72,10 @@ export default function App() {
         // Seed mock data if needed
         await seedDatabase();
 
-        // Add any other initialization here
-        // e.g., load fonts, check auth state, etc.
+        // Wait for fonts to load
+        if (!fontsLoaded) {
+          return;
+        }
 
       } catch (e) {
         console.error('Initialization error:', e);
@@ -45,9 +87,9 @@ export default function App() {
     }
 
     prepare();
-  }, []);
+  }, [fontsLoaded]);
 
-  if (!isReady) {
+  if (!isReady || !fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.acidGreen} />
@@ -92,7 +134,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     color: COLORS.systemGray1,
-    fontWeight: '600',
+    fontFamily: FONTS.semibold,
   },
   errorContainer: {
     flex: 1,
@@ -107,12 +149,13 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 24,
-    fontWeight: '800',
+    fontFamily: FONTS.extrabold,
     color: COLORS.black,
     marginBottom: 8,
   },
   errorMessage: {
     fontSize: 14,
+    fontFamily: FONTS.regular,
     color: COLORS.voteRed,
     textAlign: 'center',
   },
