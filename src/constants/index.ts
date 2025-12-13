@@ -12,6 +12,16 @@ export const APP_CONFIG = {
   tagline: 'You v/s Who?',
 };
 
+// ---------- Fonts ----------
+
+export const FONTS = {
+  regular: 'Inter_400Regular',
+  medium: 'Inter_500Medium',
+  semibold: 'Inter_600SemiBold',
+  bold: 'Inter_700Bold',
+  extrabold: 'Inter_800ExtraBold',
+} as const;
+
 // ---------- Colors (matches Tailwind config) ----------
 
 export const COLORS = {
