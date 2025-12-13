@@ -24,31 +24,8 @@ import { seedDatabase } from '@/services/backend';
 import { COLORS, FONTS } from '@/constants';
 import { store } from '@/store/store';
 
-// Keep splash screen visible while loading
 SplashScreen.preventAutoHideAsync();
 
-// Silence noisy dev-only logs (bridgeless + seed chatter)
-if (__DEV__) {
-  LogBox.ignoreLogs([
-    'Bridgeless mode is enabled',
-    'JavaScript logs will be removed from Metro in React Native 0.77',
-  ]);
-
-  const suppressedPhrases = [
-    'Bridgeless mode is enabled',
-    'JavaScript logs will be removed from Metro',
-    'Seeding Database',
-    'Database already seeded',
-  ];
-  const originalConsoleLog = console.log;
-  console.log = (...args: unknown[]) => {
-    const first = args[0];
-    if (typeof first === 'string' && suppressedPhrases.some((p) => first.includes(p))) {
-      return;
-    }
-    originalConsoleLog(...args);
-  };
-}
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
