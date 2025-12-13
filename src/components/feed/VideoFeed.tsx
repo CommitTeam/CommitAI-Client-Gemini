@@ -113,8 +113,9 @@ const VideoFeed = ({ allVideos }: { allVideos: VideoItem[] }) => {
   }, [renderCount, allVideos.length]);
 
   const viewabilityConfig = useRef({
-    viewAreaCoveragePercentThreshold: 85,
-    minimumViewTime: 150,
+    viewAreaCoveragePercentThreshold: 20,
+    minimumViewTime: 0,
+    waitForInteraction: false,
   }).current;
 
   const onViewableItemsChanged = useRef(
@@ -154,7 +155,7 @@ const VideoFeed = ({ allVideos }: { allVideos: VideoItem[] }) => {
   return (
     <View className="flex-1 mt-2">
       <View className="pl-4 mb-2">
-        <Text className="text-[20px]">Video Feed</Text>
+        <Text className="text-[21px]">Arena</Text>
       </View>
 
       <FlatList
