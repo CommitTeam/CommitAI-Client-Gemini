@@ -14,11 +14,12 @@ export const createPost = async (workout:string, level:string, targetRepCount:st
 export const getPost = async (username:string) => {
 
   try {
-    const response = await axiosInstance.get(`/api/post/getPost`, {
-      params: { username }
+    const {data} = await axiosInstance.get(`/api/post/getPost`, {
+      params: { username },
+
     })
-    console.log('User Feed:', response.data)
-    return response.data
+    console.log("GetPost Successful!")
+    return data
   } catch (error) {
     console.log('UserFeed error', error)
     throw error
