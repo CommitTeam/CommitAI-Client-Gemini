@@ -1,17 +1,5 @@
-// ============================================
-// CommitAI Mobile - Move Screen
-// Workout type and target selector
-// ============================================
-
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Dimensions,
-} from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,27 +7,18 @@ import { CompositeNavigationProp } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  Dumbbell,
-  Footprints,
-  Flame,
-  Timer,
-  Zap,
-  Play,
-} from 'lucide-react-native';
+import { Dumbbell, Footprints, Flame, Zap, Play } from 'lucide-react-native';
 
 import { User, WorkoutType } from '@/types';
-import { COLORS, WORKOUT_TYPES, WORKOUT_TARGETS, WORKOUT_TIMES } from '@/constants';
+import { COLORS, WORKOUT_TYPES, WORKOUT_TARGETS } from '@/constants';
 import { getCurrentUser, createCommitment } from '@/services/backend';
-import { BrutalistButton } from '@/components/ui';
 import { FeedStackParamList, MainTabParamList } from '@/navigation/FeedStackParamList';
+import { ExerciseCard, TargetPill, TimePill, SummaryCard } from '@/components/move';
 
 type NavigationProp = CompositeNavigationProp<
   BottomTabNavigationProp<MainTabParamList, 'Move'>,
   NativeStackNavigationProp<FeedStackParamList>
 >;
-
-const { width } = Dimensions.get('window');
 
 const EXERCISE_ICONS: Record<string, React.ReactNode> = {
   'Pushups': <Dumbbell size={24} color={COLORS.black} />,
@@ -52,21 +31,31 @@ const EXERCISE_ICONS: Record<string, React.ReactNode> = {
 
 const MoveScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
-  
+
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [selectedType, setSelectedType] = useState<WorkoutType>('Pushups');
   const [selectedTarget, setSelectedTarget] = useState<string>('20');
   const [selectedTime, setSelectedTime] = useState<string>('20 mins');
+  const [selectedLevel, setSelectedLevel] = useState<string>('easy');
 
   useEffect(() => {
     loadUser();
   }, []);
 
   useEffect(() => {
-    // Reset target when type changes
+    // Reset target and time when type changes
     const targets = WORKOUT_TARGETS[selectedType];
     if (targets && targets.length > 0) {
       setSelectedTarget(targets[0]);
+    }
+
+    const isTrackable = ['Pushups', 'Squats', 'Jumping Jacks'].includes(selectedType);
+    if (isTrackable) {
+      setSelectedTime('1 min');
+    } else if (selectedType === 'Calories') {
+      setSelectedTime('20 mins');
+    } else {
+      setSelectedTime('1 hour');
     }
   }, [selectedType]);
 
@@ -75,51 +64,28 @@ const MoveScreen: React.FC = () => {
     setCurrentUser(user);
   };
 
-  const handleTypeSelect = (type: WorkoutType) => {
-    Haptics.selectionAsync();
-    setSelectedType(type);
-  };
-
-  const handleTargetSelect = (target: string) => {
-    Haptics.selectionAsync();
-    setSelectedTarget(target);
-  };
-
-  const handleTimeSelect = (time: string) => {
-    Haptics.selectionAsync();
-    setSelectedTime(time);
-  };
-
   const handleGoLive = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    
-    // Check if it's a trackable exercise (camera-based)
-    const isTrackable = ['Pushups', 'Squats', 'Jumping Jacks'].includes(selectedType);
-    
-    if (isTrackable) {
-      navigation.navigate('LiveWorkout', {
-        exerciseType: selectedType,
-        target: selectedTarget,
-        duration: selectedTime,
-      });
-    } else {
-      // For Steps, Distance, Calories - create a commitment
-      handleCommit();
-    }
+
+    navigation.navigate('WorkoutSetup', {
+      exerciseType: selectedType,
+      target: selectedTarget,
+      duration: selectedTime,
+      level: selectedLevel,
+    });
   };
 
   const handleCommit = async () => {
     if (!currentUser) return;
-    
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
+
     await createCommitment(
       currentUser,
       `${selectedTarget} ${selectedType} in ${selectedTime}`,
       Date.now() + parseDuration(selectedTime)
     );
-    
-    // Navigate back to home
+
     navigation.goBack();
   };
 
@@ -133,144 +99,158 @@ const MoveScreen: React.FC = () => {
   const targets = WORKOUT_TARGETS[selectedType] || [];
   const isTrackable = ['Pushups', 'Squats', 'Jumping Jacks'].includes(selectedType);
 
+  const times =
+    isTrackable
+      ? ['1 min', '2 mins', '3 mins']
+      : selectedType === 'Calories'
+      ? ['20 mins', '30 mins', '1 hour']
+      : ['1 hour', '12 hours', '24 hours'];
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: COLORS.systemBg }} edges={['top']}>
       <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Start a Move</Text>
-          <Text style={styles.subtitle}>Choose your challenge</Text>
+        <View className="pt-4 pb-6">
+          <Text className="text-[32px] font-black text-black mb-1">
+            Start a Move
+          </Text>
+          <Text className="text-base" style={{ color: COLORS.systemGray1 }}>
+            Choose your challenge
+          </Text>
         </View>
 
         {/* Exercise Type Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>EXERCISE</Text>
-          <View style={styles.typeGrid}>
+        <View className="mb-7">
+          <Text
+            className="text-xs font-bold tracking-wider mb-3 uppercase"
+            style={{ color: COLORS.systemGray1 }}
+          >
+            EXERCISE
+          </Text>
+          <View className="flex-row flex-wrap gap-3">
             {WORKOUT_TYPES.map((type) => (
-              <Pressable
-                key={type}
-                style={[
-                  styles.typeCard,
-                  selectedType === type && styles.typeCardSelected,
-                ]}
-                onPress={() => handleTypeSelect(type as WorkoutType)}
-              >
-                <View style={styles.typeIcon}>
-                  {EXERCISE_ICONS[type]}
-                </View>
-                <Text
-                  style={[
-                    styles.typeLabel,
-                    selectedType === type && styles.typeLabelSelected,
-                  ]}
-                >
-                  {type}
-                </Text>
-              </Pressable>
+              <View key={type} className="w-[30%]">
+                <ExerciseCard
+                  type={type as WorkoutType}
+                  icon={EXERCISE_ICONS[type]}
+                  isSelected={selectedType === type}
+                  onPress={() => setSelectedType(type as WorkoutType)}
+                />
+              </View>
             ))}
           </View>
         </View>
 
-        {/* Target Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>TARGET</Text>
+        <View className="mb-3">
+          <Text
+            className="text-xs font-bold tracking-wider mb-3 uppercase"
+            style={{ color: COLORS.systemGray1 }}
+          >
+            TARGET
+          </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.targetScroll}
+            contentContainerStyle={{ gap: 10, paddingRight: 20 }}
           >
             {targets.map((target) => (
-              <Pressable
+              <TargetPill
                 key={target}
-                style={[
-                  styles.targetPill,
-                  selectedTarget === target && styles.targetPillSelected,
-                ]}
-                onPress={() => handleTargetSelect(target)}
-              >
-                <Text
-                  style={[
-                    styles.targetText,
-                    selectedTarget === target && styles.targetTextSelected,
-                  ]}
-                >
-                  {target}
-                </Text>
-              </Pressable>
+                target={target}
+                isSelected={selectedTarget === target}
+                onPress={setSelectedTarget}
+              />
             ))}
           </ScrollView>
         </View>
 
         {/* Time Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>TIME LIMIT</Text>
+        <View className="mb-3">
+          <Text
+            className="text-xs font-bold tracking-wider mb-3 uppercase"
+            style={{ color: COLORS.systemGray1 }}
+          >
+            TIME LIMIT
+          </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.targetScroll}
+            contentContainerStyle={{ gap: 15, paddingRight: 20, paddingVertical: 10, paddingLeft:10 }}
           >
-            {WORKOUT_TIMES.map((time) => (
-              <Pressable
+            {times.map((time) => (
+              <TimePill
                 key={time}
-                style={[
-                  styles.timePill,
-                  selectedTime === time && styles.timePillSelected,
-                ]}
-                onPress={() => handleTimeSelect(time)}
-              >
-                <Timer
-                  size={14}
-                  color={selectedTime === time ? COLORS.black : COLORS.systemGray1}
-                />
-                <Text
-                  style={[
-                    styles.timeText,
-                    selectedTime === time && styles.timeTextSelected,
-                  ]}
-                >
-                  {time}
-                </Text>
-              </Pressable>
+                time={time}
+                isSelected={selectedTime === time}
+                onPress={setSelectedTime}
+              />
             ))}
           </ScrollView>
         </View>
 
-        {/* Summary Card */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>YOUR CHALLENGE</Text>
-          <Text style={styles.summaryTitle}>
-            {selectedTarget} {selectedType}
-          </Text>
-          <Text style={styles.summaryTime}>in {selectedTime}</Text>
-        </View>
+        <SummaryCard
+          target={selectedTarget}
+          exerciseType={selectedType}
+          time={selectedTime}
+        />
 
-        {/* Action Buttons */}
-        <View style={styles.actions}>
-          {isTrackable ? (
-            <Pressable style={styles.goLiveButton} onPress={handleGoLive}>
-              <LinearGradient
-                colors={[COLORS.acidGreen, '#FFD700']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFill}
-              />
-              <Play size={20} color={COLORS.black} fill={COLORS.black} />
-              <Text style={styles.goLiveText}>GO LIVE</Text>
-            </Pressable>
-          ) : (
-            <Pressable style={styles.commitButton} onPress={handleCommit}>
-              <Flame size={20} color={COLORS.white} fill={COLORS.white} />
-              <Text style={styles.commitText}>COMMIT</Text>
-            </Pressable>
-          )}
+        <View>
+          <View className="flex-row items-center gap-3">
+            {isTrackable && (
+              <Pressable
+                className="flex-1 rounded-3xl overflow-hidden"
+                style={{
+                  shadowColor: COLORS.acidGreen,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  elevation: 8,
+                }}
+                onPress={handleGoLive}
+              >
+                <LinearGradient
+                  colors={[COLORS.acidGreen, '#FFD700']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View className="flex-row items-center justify-center py-6 gap-2.5">
+                  <Play size={20} color={COLORS.black} fill={COLORS.black} />
+                  <Text className="text-base font-black tracking-widest text-black">
+                    GO LIVE
+                  </Text>
+                </View>
+              </Pressable>
+            )}
 
-          <Text style={styles.hint}>
+            {/* COMMIT Button - Always show */}
+            <Pressable
+              className={`${isTrackable ? 'flex-1' : 'w-full'} bg-black rounded-3xl`}
+              style={{
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+                elevation: 8,
+              }}
+              onPress={handleCommit}
+            >
+              <View className="flex-row items-center justify-center py-6 gap-2.5">
+                <Flame size={20} color={COLORS.white} fill={COLORS.white} />
+                <Text className="text-base font-black tracking-widest text-white">
+                  COMMIT
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+
+          {/* Hint Text */}
+          <Text className="mt-2 text-xs text-center" style={{ color: COLORS.systemGray1 }}>
             {isTrackable
-              ? 'Camera will track your reps in real-time'
+              ? 'Go live to track reps with camera, or commit for later'
               : 'Your commitment will be visible to others'}
           </Text>
         </View>
@@ -280,133 +260,3 @@ const MoveScreen: React.FC = () => {
 };
 
 export default MoveScreen;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.systemBg },
-  scrollView: { flex: 1 },
-  scrollContent: { paddingHorizontal: 20, paddingBottom: 120 },
-
-  // Header
-  header: { paddingTop: 20, paddingBottom: 24 },
-  title: { fontSize: 32, fontWeight: '900', color: COLORS.black, marginBottom: 4 },
-  subtitle: { fontSize: 16, color: COLORS.systemGray1 },
-
-  // Sections
-  section: { marginBottom: 28 },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.systemGray1,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-
-  // Type Grid
-  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  typeCard: {
-    width: (width - 52) / 3,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  typeCardSelected: {
-    borderColor: COLORS.acidGreen,
-    backgroundColor: 'rgba(255, 238, 50, 0.1)',
-  },
-  typeIcon: { marginBottom: 8 },
-  typeLabel: { fontSize: 11, fontWeight: '700', color: COLORS.systemGray1, textAlign: 'center' },
-  typeLabelSelected: { color: COLORS.black },
-
-  // Target Pills
-  targetScroll: { paddingRight: 20, gap: 10 },
-  targetPill: {
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  targetPillSelected: {
-    borderColor: COLORS.acidGreen,
-    backgroundColor: COLORS.acidGreen,
-  },
-  targetText: { fontSize: 16, fontWeight: '800', color: COLORS.systemGray1 },
-  targetTextSelected: { color: COLORS.black },
-
-  // Time Pills
-  timePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  timePillSelected: {
-    borderColor: COLORS.black,
-    backgroundColor: COLORS.systemGray6,
-  },
-  timeText: { fontSize: 13, fontWeight: '700', color: COLORS.systemGray1 },
-  timeTextSelected: { color: COLORS.black },
-
-  // Summary
-  summaryCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 24,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  summaryLabel: { fontSize: 10, fontWeight: '700', color: COLORS.systemGray1, letterSpacing: 1, marginBottom: 8 },
-  summaryTitle: { fontSize: 28, fontWeight: '900', color: COLORS.black, marginBottom: 4 },
-  summaryTime: { fontSize: 16, fontWeight: '600', color: COLORS.systemGray1 },
-
-  // Actions
-  actions: { alignItems: 'center' },
-  goLiveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    paddingVertical: 18,
-    borderRadius: 24,
-    gap: 10,
-    overflow: 'hidden',
-    shadowColor: COLORS.acidGreen,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  goLiveText: { fontSize: 16, fontWeight: '900', color: COLORS.black, letterSpacing: 2 },
-  commitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    backgroundColor: COLORS.black,
-    paddingVertical: 18,
-    borderRadius: 24,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  commitText: { fontSize: 16, fontWeight: '900', color: COLORS.white, letterSpacing: 2 },
-  hint: { marginTop: 16, fontSize: 12, color: COLORS.systemGray1, textAlign: 'center' },
-});
