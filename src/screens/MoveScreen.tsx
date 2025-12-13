@@ -21,7 +21,7 @@ type NavigationProp = CompositeNavigationProp<
 >;
 
 const EXERCISE_ICONS: Record<string, React.ReactNode> = {
-  'Pushups': <Dumbbell size={24} color={COLORS.black} />,
+  'Push Ups': <Dumbbell size={24} color={COLORS.black} />,
   'Squats': <Dumbbell size={24} color={COLORS.black} />,
   'Jumping Jacks': <Zap size={24} color={COLORS.black} />,
   'Steps': <Footprints size={24} color={COLORS.black} />,
@@ -33,7 +33,7 @@ const MoveScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [selectedType, setSelectedType] = useState<WorkoutType>('Pushups');
+  const [selectedType, setSelectedType] = useState<WorkoutType>('Push Ups');
   const [selectedTarget, setSelectedTarget] = useState<string>('20');
   const [selectedTime, setSelectedTime] = useState<string>('20 mins');
   const [selectedLevel, setSelectedLevel] = useState<string>('easy');
@@ -43,21 +43,41 @@ const MoveScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Reset target and time when type changes
     const targets = WORKOUT_TARGETS[selectedType];
     if (targets && targets.length > 0) {
       setSelectedTarget(targets[0]);
     }
 
-    const isTrackable = ['Pushups', 'Squats', 'Jumping Jacks'].includes(selectedType);
+    const isTrackable = ['Push Ups', 'Squats', 'Jumping Jacks'].includes(selectedType);
     if (isTrackable) {
       setSelectedTime('1 min');
+      setSelectedLevel('easy');
     } else if (selectedType === 'Calories') {
       setSelectedTime('20 mins');
+      setSelectedLevel('easy');
     } else {
       setSelectedTime('1 hour');
+      setSelectedLevel('easy');
     }
   }, [selectedType]);
+
+  useEffect(() => {
+    const isTrackable = ['Push Ups', 'Squats', 'Jumping Jacks'].includes(selectedType);
+
+    if (isTrackable) {
+      if (selectedTime === '1 min') setSelectedLevel('easy');
+      else if (selectedTime === '2 mins') setSelectedLevel('medium');
+      else if (selectedTime === '3 mins') setSelectedLevel('hard');
+    } else if (selectedType === 'Calories') {
+      if (selectedTime === '20 mins') setSelectedLevel('easy');
+      else if (selectedTime === '30 mins') setSelectedLevel('medium');
+      else if (selectedTime === '1 hour') setSelectedLevel('hard');
+    } else {
+      if (selectedTime === '1 hour') setSelectedLevel('easy');
+      else if (selectedTime === '12 hours') setSelectedLevel('medium');
+      else if (selectedTime === '24 hours') setSelectedLevel('hard');
+    }
+  }, [selectedTime, selectedType]);
 
   const loadUser = async () => {
     const user = await getCurrentUser();
@@ -97,7 +117,7 @@ const MoveScreen: React.FC = () => {
   };
 
   const targets = WORKOUT_TARGETS[selectedType] || [];
-  const isTrackable = ['Pushups', 'Squats', 'Jumping Jacks'].includes(selectedType);
+  const isTrackable = ['Push Ups', 'Squats', 'Jumping Jacks'].includes(selectedType);
 
   const times =
     isTrackable
@@ -167,7 +187,6 @@ const MoveScreen: React.FC = () => {
           </ScrollView>
         </View>
 
-        {/* Time Selection */}
         <View className="mb-3">
           <Text
             className="text-xs font-bold tracking-wider mb-3 uppercase"
@@ -226,7 +245,6 @@ const MoveScreen: React.FC = () => {
               </Pressable>
             )}
 
-            {/* COMMIT Button - Always show */}
             <Pressable
               className={`${isTrackable ? 'flex-1' : 'w-full'} bg-black rounded-3xl`}
               style={{
@@ -247,7 +265,6 @@ const MoveScreen: React.FC = () => {
             </Pressable>
           </View>
 
-          {/* Hint Text */}
           <Text className="mt-2 text-xs text-center" style={{ color: COLORS.systemGray1 }}>
             {isTrackable
               ? 'Go live to track reps with camera, or commit for later'

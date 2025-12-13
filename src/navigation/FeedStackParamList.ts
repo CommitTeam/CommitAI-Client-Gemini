@@ -1,8 +1,3 @@
-// ============================================
-// CommitAI Mobile - Feed Stack Navigation Types
-// Main app navigation (tabs + modals)
-// ============================================
-
 export type MainTabParamList = {
   Home: undefined;
   Move: undefined;
@@ -11,6 +6,12 @@ export type MainTabParamList = {
 
 export type FeedStackParamList = {
   Main: undefined;
+  WorkoutSetup: {
+    exerciseType: string;
+    target: string;
+    duration: string;
+    level: string;
+  };
   LiveWorkout: {
     exerciseType: string;
     target: string;
@@ -21,7 +22,7 @@ export type FeedStackParamList = {
     exerciseType: string;
     reps: number;
     target: number;
-    duration: number; // in seconds
+    duration: number;
     success: boolean;
   };
   Leaderboard: undefined;

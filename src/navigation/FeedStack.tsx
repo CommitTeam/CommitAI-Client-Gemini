@@ -1,8 +1,3 @@
-// ============================================
-// CommitAI Mobile - Feed Stack Navigator
-// Main app navigation with tabs and modal screens
-// ============================================
-
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -11,6 +6,7 @@ import { COLORS } from '@/constants';
 import { MainTabs } from './CustomTabBar';
 import {
   LiveWorkoutScreen,
+  WorkoutSetupScreen,
   WorkoutSummaryScreen,
   LeaderboardScreen,
   MarketplaceScreen,
@@ -30,6 +26,11 @@ const FeedStack: React.FC = () => {
       }}
     >
       <Stack.Screen name="Main" component={MainTabs} />
+      <Stack.Screen
+        name="WorkoutSetup"
+        component={WorkoutSetupScreen}
+        options={{ animation: 'slide_from_bottom' }}
+      />
       <Stack.Screen
         name="LiveWorkout"
         component={LiveWorkoutScreen}

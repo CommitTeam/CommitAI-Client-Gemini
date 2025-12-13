@@ -256,7 +256,7 @@ export interface ExerciseState {
   lastFeedback: string;
 }
 
-export type WorkoutType = 'Pushups' | 'Squats' | 'Jumping Jacks' | 'Steps' | 'Distance Walk' | 'Calories';
+export type WorkoutType = 'Push Ups' | 'Squats' | 'Jumping Jacks' | 'Steps' | 'Distance Walk' | 'Calories';
 
 export interface WorkoutConfig {
   type: WorkoutType;
