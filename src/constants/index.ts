@@ -55,7 +55,7 @@ export const COLORS = {
 // ---------- Workout Configuration ----------
 
 export const WORKOUT_TYPES: WorkoutType[] = [
-  'Pushups',
+  'Push Ups',
   'Squats',
   'Jumping Jacks',
   'Steps',
@@ -64,7 +64,7 @@ export const WORKOUT_TYPES: WorkoutType[] = [
 ];
 
 export const WORKOUT_TARGETS: Record<WorkoutType, string[]> = {
-  'Pushups': ['10', '20', '30', '50', '100', '200'],
+  'Push Ups': ['10', '20', '30', '50', '100', '200'],
   'Squats': ['15', '30', '50', '100', '300'],
   'Jumping Jacks': ['50', '100', '200', '500'],
   'Steps': ['1000', '3000', '5000', '10000'],
@@ -80,7 +80,7 @@ export const LEVEL_MILESTONES = [
   {
     level: 1,
     requirements: {
-      Pushups: 0,
+      'Push Ups': 0,
       Squats: 0,
       'Jumping Jacks': 0,
       Steps: 0,
@@ -91,7 +91,7 @@ export const LEVEL_MILESTONES = [
   {
     level: 2,
     requirements: {
-      Pushups: 100,
+      'Push Ups': 100,
       Squats: 100,
       'Jumping Jacks': 200,
       Steps: 5000,
