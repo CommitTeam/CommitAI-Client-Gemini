@@ -127,7 +127,6 @@ export interface LiveSession {
   thumbnail?: string;
   currentReps?: number;
   totalReps?: number;
-  isPrivate?: boolean;
 }
 
 export interface Commitment {
@@ -225,7 +224,6 @@ export type RootStackParamList = {
     exerciseType: string;
     target: string;
     duration: string;
-    isPrivate?: boolean;
   };
   Leaderboard: undefined;
   Marketplace: undefined;

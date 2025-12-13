@@ -50,7 +50,7 @@ const HomeScreen: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const user = await getCurrentUser();
+      const user = await getCurrentUser()
       const username = await getUsername();
 
       if (!user) return;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -18,8 +18,6 @@ const WorkoutSetupScreen: React.FC = () => {
   const route = useRoute<WorkoutSetupScreenRouteProp>();
   const { exerciseType, target, duration, level } = route.params;
 
-  const [isPrivate, setIsPrivate] = useState(false);
-
   const handleClose = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     navigation.goBack();
@@ -28,11 +26,10 @@ const WorkoutSetupScreen: React.FC = () => {
   const handleStartWorkout = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
-    navigation.navigate('LiveWorkout', {
+    navigation.navigate('WorkoutTransition', {
       exerciseType,
       target,
       duration,
-      isPrivate,
     });
   };
 
@@ -63,59 +60,6 @@ const WorkoutSetupScreen: React.FC = () => {
                 {level}
               </Text>
             </View>
-          </View>
-        </View>
-
-        {/* Privacy Toggle */}
-        <View
-          className="rounded-3xl p-5 mb-6"
-          style={{ backgroundColor: COLORS.white, borderWidth: 1, borderColor: COLORS.systemGray5 }}
-        >
-          <Text className="text-lg font-bold text-black mb-2">Privacy</Text>
-          <Text className="text-base mb-4" style={{ color: COLORS.systemGray1 }}>
-            Choose who can see your workout
-          </Text>
-
-          <View className="flex-row gap-3">
-            <Pressable
-              className="flex-1 p-4 rounded-2xl"
-              style={{
-                backgroundColor: !isPrivate ? COLORS.acidGreen : COLORS.systemGray6,
-                borderWidth: 1,
-                borderColor: !isPrivate ? COLORS.acidGreen : COLORS.systemGray5,
-              }}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setIsPrivate(false);
-              }}
-            >
-              <Text
-                className="text-center text-base font-bold"
-                style={{ color: !isPrivate ? COLORS.black : COLORS.systemGray1 }}
-              >
-                Public
-              </Text>
-            </Pressable>
-
-            <Pressable
-              className="flex-1 p-4 rounded-2xl"
-              style={{
-                backgroundColor: isPrivate ? COLORS.acidGreen : COLORS.systemGray6,
-                borderWidth: 1,
-                borderColor: isPrivate ? COLORS.acidGreen : COLORS.systemGray5,
-              }}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setIsPrivate(true);
-              }}
-            >
-              <Text
-                className="text-center text-base font-bold"
-                style={{ color: isPrivate ? COLORS.black : COLORS.systemGray1 }}
-              >
-                Private
-              </Text>
-            </Pressable>
           </View>
         </View>
 

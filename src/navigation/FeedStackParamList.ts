@@ -12,11 +12,15 @@ export type FeedStackParamList = {
     duration: string;
     level: string;
   };
+  WorkoutTransition: {
+    exerciseType: string;
+    target: string;
+    duration: string;
+  };
   LiveWorkout: {
     exerciseType: string;
     target: string;
     duration: string;
-    isPrivate?: boolean;
   };
   WorkoutSummary: {
     exerciseType: string;

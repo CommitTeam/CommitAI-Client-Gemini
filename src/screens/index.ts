@@ -10,5 +10,6 @@ export { default as PublicProfileScreen } from './PublicProfileScreen';
 export { default as CoinMenuScreen } from './CoinMenuScreen';
 export { default as LiveWorkoutScreen } from './LiveWorkoutScreen';
 export { default as WorkoutSetupScreen } from './WorkoutSetupScreen';
+export { default as WorkoutTransition } from './WorkoutTransition';
 export { default as WorkoutSummaryScreen } from './WorkoutSummaryScreen';
 export { default as MoveScreen } from './MoveScreen';

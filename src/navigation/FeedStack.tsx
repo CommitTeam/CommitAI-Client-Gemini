@@ -7,6 +7,7 @@ import { MainTabs } from './CustomTabBar';
 import {
   LiveWorkoutScreen,
   WorkoutSetupScreen,
+  WorkoutTransition,
   WorkoutSummaryScreen,
   LeaderboardScreen,
   MarketplaceScreen,
@@ -30,6 +31,11 @@ const FeedStack: React.FC = () => {
         name="WorkoutSetup"
         component={WorkoutSetupScreen}
         options={{ animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="WorkoutTransition"
+        component={WorkoutTransition}
+        options={{ animation: 'fade' }}
       />
       <Stack.Screen
         name="LiveWorkout"

@@ -28,62 +28,6 @@ SplashScreen.preventAutoHideAsync();
 
 
 export default function App() {
-  const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Load Inter fonts
-  const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_800ExtraBold,
-  });
-
-  useEffect(() => {
-    async function prepare() {
-      try {
-        // Run database migrations
-        await runMigrations();
-
-        // Seed mock data if needed
-        await seedDatabase();
-
-        // Wait for fonts to load
-        if (!fontsLoaded) {
-          return;
-        }
-
-      } catch (e) {
-        console.error('Initialization error:', e);
-        setError(e instanceof Error ? e.message : 'Unknown error');
-      } finally {
-        setIsReady(true);
-        await SplashScreen.hideAsync();
-      }
-    }
-
-    prepare();
-  }, [fontsLoaded]);
-
-  if (!isReady || !fontsLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.acidGreen} />
-        <Text style={styles.loadingText}>Loading CommitAI...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorEmoji}>⚠️</Text>
-        <Text style={styles.errorTitle}>Something went wrong</Text>
-        <Text style={styles.errorMessage}>{error}</Text>
-      </View>
-    );
-  }
 
   return (
     <Provider store={store}>
